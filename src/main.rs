@@ -1,4 +1,3 @@
-use core::panic;
 use std::{collections::HashMap, fs::File, str::FromStr, time::Duration};
 
 use clap::Parser;
@@ -94,13 +93,13 @@ fn main() {
         ];
         bot.set_my_commands(commands)
             .await
-            .map_err(|e| println!("ERROR setting commands: {e:?}"))
+            .map_err(|e| log::error!("ERROR setting commands: {e:?}"))
             .unwrap();
         bot.set_chat_menu_button()
             .menu_button(MenuButton::Commands)
             .send()
             .await
-            .map_err(|e| println!("ERROR setting chat menu: {e:?}"))
+            .map_err(|e| log::error!("ERROR setting chat menu: {e:?}"))
             .unwrap();
         teloxide::repl(bot.clone(), handler)
             .race(async {
@@ -227,7 +226,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .bind(vm_id)
                 .execute(&*DB)
-                .await.map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
+                .await.map_err(|e| {log::debug!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 if result.rows_affected() > 0 {
                     bot.send_message(chat_id, REGISTER_SUCCESS).await?;
                     send_menu(&bot, chat_id, true).await?;
@@ -245,7 +244,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .fetch_one(&*DB)
                 .await
                 .map_err(|e| {
-                    println!("ERROR: {e}");
+                    log::debug!("ERROR: {e}");
                     RequestError::RetryAfter(Seconds::from_seconds(2))
                 })?;
                 let hours = secs / 3600;
@@ -268,7 +267,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .fetch_one(&*DB)
                 .await
-                .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
+                .map_err(|e| {log::debug!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 bot.send_message(
                     chat_id,
                     format!("Unclaimed Plus days {days} / 未领取的 Plus 天数：{days}"),
@@ -286,7 +285,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .fetch_one(&*DB)
                 .await
-                .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
+                .map_err(|e| {log::debug!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 if days > 0 {
                     let body = json!({
                         "days_per_card": days,
@@ -299,17 +298,17 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                     .header(isahc::http::header::CONTENT_TYPE, "application/json")
                     .body(body.to_string())
                     .map_err(|e| {
-                        println!("ERROR: {e}");
+                        log::debug!("ERROR: {e}");
                         RequestError::RetryAfter(Seconds::from_seconds(2))
                     })?
                     .send()
                     .map_err(|e| {
-                        println!("ERROR: {e}");
+                        log::debug!("ERROR: {e}");
                         RequestError::RetryAfter(Seconds::from_seconds(2))
                     })?
                     .text()
                     .map_err(|e| {
-                        println!("ERROR: {e}");
+                        log::debug!("ERROR: {e}");
                         RequestError::RetryAfter(Seconds::from_seconds(2))
                     })?;
                     bot.send_message(chat_id, giftcard).await?;
@@ -320,7 +319,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                     .bind(chat_id.0)
                     .execute(&*DB)
                     .await
-                    .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
+                    .map_err(|e| {log::debug!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 } else {
                     bot.send_message(chat_id, "No unclaimed days yet. / 还没有未领取的天数。")
                         .await?;
@@ -338,7 +337,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .execute(&*DB)
                 .await
                 .map_err(|e| {
-                    println!("ERROR: {e}");
+                    log::debug!("ERROR: {e}");
                     RequestError::RetryAfter(Seconds::from_seconds(2))
                 })?;
                 bot.send_message(
