@@ -225,8 +225,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .bind(vm_id)
                 .execute(&*DB)
-                .await
-                .unwrap();
+                .await.map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 if result.rows_affected() > 0 {
                     bot.send_message(chat_id, REGISTER_SUCCESS).await?;
                     send_menu(&bot, chat_id, true).await?;
@@ -243,7 +242,10 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .fetch_one(&*DB)
                 .await
-                .unwrap();
+                .map_err(|e| {
+                    println!("ERROR: {e}");
+                    RequestError::RetryAfter(Seconds::from_seconds(2))
+                })?;
                 let hours = secs / 3600;
                 bot.send_message(
                     chat_id,
@@ -264,7 +266,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .fetch_one(&*DB)
                 .await
-                .unwrap();
+                .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 bot.send_message(
                     chat_id,
                     format!("Unclaimed Plus days {days} / 未领取的 Plus 天数：{days}"),
@@ -282,7 +284,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .fetch_one(&*DB)
                 .await
-                .unwrap();
+                .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 if days > 0 {
                     let body = json!({
                         "days_per_card": days,
@@ -294,11 +296,20 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                     )
                     .header(isahc::http::header::CONTENT_TYPE, "application/json")
                     .body(body.to_string())
-                    .unwrap()
+                    .map_err(|e| {
+                        println!("ERROR: {e}");
+                        RequestError::RetryAfter(Seconds::from_seconds(2))
+                    })?
                     .send()
-                    .unwrap()
+                    .map_err(|e| {
+                        println!("ERROR: {e}");
+                        RequestError::RetryAfter(Seconds::from_seconds(2))
+                    })?
                     .text()
-                    .unwrap();
+                    .map_err(|e| {
+                        println!("ERROR: {e}");
+                        RequestError::RetryAfter(Seconds::from_seconds(2))
+                    })?;
                     bot.send_message(chat_id, giftcard).await?;
                     sqlx::query(
                         "UPDATE agent_records SET paid_secs = paid_secs + $1 WHERE telegram_chat_id = $2;",
@@ -307,7 +318,7 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                     .bind(chat_id.0)
                     .execute(&*DB)
                     .await
-                    .unwrap();
+                    .map_err(|e| {println!("ERROR: {e}"); RequestError::RetryAfter(Seconds::from_seconds(2))})?;
                 } else {
                     bot.send_message(chat_id, "No unclaimed days yet. / 还没有未领取的天数。")
                         .await?;
@@ -324,7 +335,10 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                 .bind(chat_id.0)
                 .execute(&*DB)
                 .await
-                .unwrap();
+                .map_err(|e| {
+                    println!("ERROR: {e}");
+                    RequestError::RetryAfter(Seconds::from_seconds(2))
+                })?;
                 bot.send_message(
                     chat_id,
                     "Your VM has been deregistered. / 您的 VM 已取消注册。",
@@ -398,7 +412,7 @@ WHERE telegram_chat_id IS NOT NULL
 
         for (chat_id, new_days) in notifications {
             for _ in 0..new_days {
-                bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天为领取的Plus。使用 /claim 领取您的天数。")).await?;
+                let _ = bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天为领取的Plus。使用 /claim 领取您的天数。")).await;
             }
         }
 
