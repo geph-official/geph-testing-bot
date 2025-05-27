@@ -93,14 +93,13 @@ fn main() {
         ];
         bot.set_my_commands(commands)
             .await
-            .map_err(|e| log::error!("ERROR setting commands: {e:?}"))
-            .unwrap();
-        bot.set_chat_menu_button()
+            .map_err(|e| log::error!("ERROR setting commands: {e:?}"));
+        let _ = bot
+            .set_chat_menu_button()
             .menu_button(MenuButton::Commands)
             .send()
             .await
-            .map_err(|e| log::error!("ERROR setting chat menu: {e:?}"))
-            .unwrap();
+            .map_err(|e| log::error!("ERROR setting chat menu: {e:?}"));
         teloxide::repl(bot.clone(), handler)
             .race(async {
                 update_uptime_loop().await.unwrap();
