@@ -91,15 +91,16 @@ fn main() {
             BotCommand::new("deregister", "Deregister your VM / 取消注册 VM"),
             BotCommand::new("menu", "Show command menu / 显示命令菜单"),
         ];
-        bot.set_my_commands(commands)
-            .await
-            .map_err(|e| log::error!("ERROR setting commands: {e:?}"));
         let _ = bot
             .set_chat_menu_button()
             .menu_button(MenuButton::Commands)
             .send()
             .await
             .map_err(|e| log::error!("ERROR setting chat menu: {e:?}"));
+        let _ = bot
+            .set_my_commands(commands)
+            .await
+            .map_err(|e| log::error!("ERROR setting commands: {e:?}"));
         teloxide::repl(bot.clone(), handler)
             .race(async {
                 update_uptime_loop().await.unwrap();
