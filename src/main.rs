@@ -1,3 +1,4 @@
+use core::panic;
 use std::{collections::HashMap, fs::File, str::FromStr, time::Duration};
 
 use clap::Parser;
@@ -91,11 +92,15 @@ fn main() {
             BotCommand::new("deregister", "Deregister your VM / 取消注册 VM"),
             BotCommand::new("menu", "Show command menu / 显示命令菜单"),
         ];
-        bot.set_my_commands(commands).await.unwrap();
+        bot.set_my_commands(commands)
+            .await
+            .map_err(|e| println!("ERROR setting commands: {e:?}"))
+            .unwrap();
         bot.set_chat_menu_button()
             .menu_button(MenuButton::Commands)
             .send()
             .await
+            .map_err(|e| println!("ERROR setting chat menu: {e:?}"))
             .unwrap();
         teloxide::repl(bot.clone(), handler)
             .race(async {
@@ -183,12 +188,9 @@ fn menu_markup(registered: bool) -> InlineKeyboardMarkup {
 }
 
 async fn send_menu(bot: &Bot, chat_id: ChatId, registered: bool) -> Result<(), RequestError> {
-    bot.send_message(
-        chat_id,
-        "Choose a command from the menu below: / 请从以下菜单选择命令：",
-    )
-    .reply_markup(menu_markup(registered))
-    .await?;
+    bot.send_message(chat_id, "Choose a command: / 请选择一个命令：")
+        .reply_markup(menu_markup(registered))
+        .await?;
     Ok(())
 }
 
