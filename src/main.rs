@@ -412,7 +412,7 @@ WHERE telegram_chat_id IS NOT NULL
         .await?;
 
         for (chat_id, new_days) in notifications {
-                let _ = bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天为领取的Plus。使用 /claim 领取您的天数。")).await;
+                let _ = bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天未领取的Plus。使用 /claim 领取您的天数。")).await;
         }
 
         ticker.next().await;
