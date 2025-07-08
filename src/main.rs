@@ -247,11 +247,12 @@ async fn handler(bot: Bot, msg: Message) -> Result<(), RequestError> {
                     log::debug!("ERROR: {e}");
                     RequestError::RetryAfter(Seconds::from_seconds(2))
                 })?;
-                let hours = secs / 3600;
+                // let hours = secs / 3600;
+                let mins = secs / 60;
                 bot.send_message(
                     chat_id,
                     format!(
-                        "Your VM has been up for {hours} hours. / 您的 VM 已经运行了 {hours} 小时。"
+                        "Your VM has been up for {mins} minutes. / 您的 VM 已经运行了 {mins} 分钟。"
                     ),
                 )
                 .await?;
@@ -412,7 +413,7 @@ WHERE telegram_chat_id IS NOT NULL
         .await?;
 
         for (chat_id, new_days) in notifications {
-                let _ = bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天未领取的Plus。使用 /claim 领取您的天数。")).await;
+            let _ = bot.send_message(ChatId(chat_id), format!("Thank you for running a testing VM! You have {new_days} day(s) of unclaimed Plus. Use /claim to redeem your days. / 感谢您运营测试 VM！您目前有{new_days}天未领取的Plus。使用 /claim 领取您的天数。")).await;
         }
 
         ticker.next().await;
