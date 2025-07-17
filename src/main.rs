@@ -77,7 +77,7 @@ fn main() {
         let commands = vec![
             BotCommand::new(
                 "register",
-                "Register your VM. Usage: /register <id> / 注册您的 VM：/register <id>",
+                "Register your VM. Usage: /register id / 注册您的 VM：/register id",
             ),
             BotCommand::new("uptime", "Show your VM's total uptime / 查看 VM 总运行时间"),
             BotCommand::new(
@@ -120,7 +120,7 @@ const REGISTER_SUCCESS: &str =
 
 const GREETING: &str = "Hey there!
 
-To register your testing VM to receive Plus, send us your VM ID with /register <vm_id>. Make sure your VM is running when you register. / 嗨！若要注册您的测试 VM 并领取 Plus，请使用 /register <vm_id>。请确保在注册时您的 VM 正在运行。";
+To register your testing VM to receive Plus, send us your VM ID with /register vm_id. Make sure your VM is running when you register. / 嗨！若要注册您的测试 VM 并领取 Plus，请使用 /register vm_id。请确保在注册时您的 VM 正在运行。";
 
 const INVALID_VM: &str = "What you gave me is not a valid VM ID - please double check! / 您给我的不是有效的虚拟机 ID - 请再次检查！";
 
